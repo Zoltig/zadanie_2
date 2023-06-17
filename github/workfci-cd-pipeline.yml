@@ -1,0 +1,34 @@
+name: CI/CD Pipeline  # Nazwa całej sekcji konfiguracji CI/CD pipeline.
+
+on:
+  push:
+    branches:
+      - main  # Wykonywanie pipeline'a tylko w przypadku push'a do brancha "main".
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Wykorzystanie obrazu Ubuntu jako środowiska wykonawczego.
+
+    steps:
+      - name: Checkout repository  # Krok pobrania repozytorium.
+        uses: actions/checkout@v2
+
+      - name: Set up AWS credentials  # Konfiguracja danych uwierzytelniających AWS.
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Pobranie dostępu do klucza AWS Access Key ID z secret GitHub.
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Pobranie dostępu do secret AWS Secret Access Key z secret GitHub.
+          aws-region: eu-west-1  # Ustawienie regionu AWS na "eu-west-1".
+
+      - name: Install dependencies  # Instalacja zależności.
+        run: npm install
+
+      - name: Build React app  # Kompilacja aplikacji React.
+        run: npm run build
+
+      - name: Deploy to Elastic Beanstalk  # Wdrożenie do Elastic Beanstalk.
+        run: |
+          eb init lab12 --platform "Multi-container Docker"  # Inicjalizacja środowiska Elastic Beanstalk dla aplikacji "lab12" z użyciem platformy "Multi-container Docker".
+          eb deploy lab12  # Wdrożenie aplikacji "lab12" do Elastic Beanstalk.
+
+
